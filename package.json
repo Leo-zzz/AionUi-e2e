@@ -1,0 +1,21 @@
+{
+  "name": "aionui-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E tests for AionUi Electron application",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:smoke": "npx playwright test --project=smoke",
+    "test:chaos": "npx playwright test --project=chaos",
+    "test:network": "npx playwright test --project=network",
+    "test:visual": "npx playwright test --project=visual",
+    "test:update-snapshots": "npx playwright test --project=visual --update-snapshots",
+    "report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.0.0",
+    "electron": "^37.3.0",
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,70 @@
+name: E2E Full Test Suite
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Daily at UTC 02:00
+  workflow_dispatch:
+
+jobs:
+  full-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout E2E tests
+        uses: actions/checkout@v4
+
+      - name: Checkout AionUi
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/AionUi
+          path: AionUi
+          token: ${{ secrets.AION_UI_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install AionUi dependencies
+        run: bun install
+        working-directory: AionUi
+
+      - name: Build AionUi
+        run: bun run package
+        working-directory: AionUi
+
+      - name: Install E2E dependencies
+        run: bun install
+
+      - name: Run all tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum npx playwright test
+        env:
+          AION_UI_PATH: ${{ github.workspace }}/AionUi
+          CI: true
+
+      - name: Run all tests (macOS/Windows)
+        if: runner.os != 'Linux'
+        run: npx playwright test
+        env:
+          AION_UI_PATH: ${{ github.workspace }}/AionUi
+          CI: true
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: test-results/
+          retention-days: 30

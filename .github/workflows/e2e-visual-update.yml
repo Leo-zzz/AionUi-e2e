@@ -1,0 +1,55 @@
+name: Update Visual Baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to update baselines on'
+        required: false
+        default: 'main'
+
+jobs:
+  update-baselines:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout E2E tests
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Checkout AionUi
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/AionUi
+          path: AionUi
+          token: ${{ secrets.AION_UI_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install AionUi dependencies
+        run: bun install
+        working-directory: AionUi
+
+      - name: Build AionUi
+        run: bun run package
+        working-directory: AionUi
+
+      - name: Install E2E dependencies
+        run: bun install
+
+      - name: Update visual snapshots
+        run: npx playwright test --project=visual --update-snapshots
+        env:
+          AION_UI_PATH: ${{ github.workspace }}/AionUi
+          CI: true
+
+      - name: Commit updated snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tests/visual/__snapshots__/
+          git diff --staged --quiet || git commit -m "chore: update visual baseline snapshots"
+          git push

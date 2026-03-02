@@ -1,0 +1,20 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+blob-report/
+.env
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude
+.claude/

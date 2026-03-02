@@ -1,0 +1,65 @@
+name: E2E Smoke Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout E2E tests
+        uses: actions/checkout@v4
+
+      - name: Checkout AionUi
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/AionUi
+          path: AionUi
+          token: ${{ secrets.AION_UI_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install AionUi dependencies
+        run: bun install
+        working-directory: AionUi
+
+      - name: Build AionUi
+        run: bun run package
+        working-directory: AionUi
+
+      - name: Install E2E dependencies
+        run: bun install
+
+      - name: Run smoke tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum npx playwright test --project=smoke
+        env:
+          AION_UI_PATH: ${{ github.workspace }}/AionUi
+          CI: true
+
+      - name: Run smoke tests (Windows)
+        if: runner.os == 'Windows'
+        run: npx playwright test --project=smoke
+        env:
+          AION_UI_PATH: ${{ github.workspace }}/AionUi
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results-${{ matrix.os }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
