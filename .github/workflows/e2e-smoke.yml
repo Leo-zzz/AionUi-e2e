@@ -27,9 +27,8 @@ jobs:
       - name: Checkout AionUi
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/AionUi
+          repository: iOfficeAI/AionUi
           path: AionUi
-          token: ${{ secrets.AION_UI_TOKEN }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
