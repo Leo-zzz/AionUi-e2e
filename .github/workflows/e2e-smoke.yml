@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, windows-11-arm, ubuntu-latest, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
@@ -54,13 +54,6 @@ jobs:
 
       - name: Run smoke tests (Windows)
         if: runner.os == 'Windows'
-        run: npx playwright test --project=smoke
-        env:
-          AION_UI_PATH: ${{ github.workspace }}/AionUi
-          CI: true
-
-      - name: Run smoke tests (macOS)
-        if: runner.os == 'macOS'
         run: npx playwright test --project=smoke
         env:
           AION_UI_PATH: ${{ github.workspace }}/AionUi
